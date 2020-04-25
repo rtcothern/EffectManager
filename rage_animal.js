@@ -36,8 +36,11 @@ let toggleRage = function(toggle)
 	// Slice operator to make a copy instead of reference
 	obj['data.traits.dr'] = [...ragerData.traits.dr];
 
-	toggleResFn('piercing', 'Piercing');
-	toggleResFn('slashing', 'Slashing');
+	if (level >= 9)
+	{
+		toggleResFn('piercing', 'Piercing');
+		toggleResFn('slashing', 'Slashing');
+	}
 
 	// Batch our update operations at the end so we only do them if we haven't hit errors
 	let updateOperations = [];
