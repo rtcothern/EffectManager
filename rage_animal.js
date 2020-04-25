@@ -2,6 +2,11 @@ let rager = game.user.character;
 let ragerData = rager.data.data;
 let level = ragerData.details.level.value;
 
+let reportLine = function(stat, value)
+{
+	return `<small><i>New ${stat}:</i> ${value}</small><br>`;
+}
+
 let toggleRage = function(toggle)
 {
 	let report = '';
@@ -15,7 +20,7 @@ let toggleRage = function(toggle)
 	hpMod = (hpMod >= 0) ? hpMod : 0;
 	obj['data.attributes.hp.temp'] = hpMod;
 
-	report += 'New Temp HP: ' + hpMod + '<br>';
+	report += reportLine('Temp HP', hpMod);
 
     let resVal = 3+level+ragerData.abilities.con.mod;
 
@@ -31,7 +36,7 @@ let toggleRage = function(toggle)
 			let numberValue = +ragerData.traits.dr[resInd].value;
 			obj['data.traits.dr'][resInd].value = (+numberValue + mult*resVal).toString();
 		} 
-		report += 'New ' + name + ' Resistance: ' + obj['data.traits.dr'][resInd].value + '<br>';
+		report += reportLine(name + ' Resistance', obj['data.traits.dr'][resInd].value );
 	}
 	// Slice operator to make a copy instead of reference
 	obj['data.traits.dr'] = [...ragerData.traits.dr];
@@ -80,9 +85,9 @@ let toggleRage = function(toggle)
 		operations[0].update(operation[1]);
 	}
 
-	let rageClause = toggle ? ' (Rage bonus halved for Agile Weapons)' : '';
-	report += 'Bonus Damage: ' + bonusDamage + rageClause + '<br>';
-	report += 'New AC: ' + (ragerData.attributes.ac.value - mult).toString();
+	let rageClause = toggle ? ' (Will be halved for Agile Weapons)' : '';
+	report += reportLine('Bonus Damage', bonusDamage + rageClause);
+	report += reportLine('AC', (ragerData.attributes.ac.value - mult).toString());
 
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === rager.id);
 	let statusEffectIndex = 12; //Placeholder until we can get a better image
@@ -95,13 +100,13 @@ let obj = {};
 let toggle = (rager.data.flags.raging == undefined || rager.data.flags.raging == false);
 if (toggle)
 {
-    chatMsg = rager.name + ' begins Raging! RAAAAARGH!!!<br>';
-	chatMsg += toggleRage(true);
+    chatMsg = '<h3>' + rager.name + ' begins Raging!</h3> <em>RAAAAARGH!!!</em><p>';
+	chatMsg += toggleRage(true) + '</p>';
 }
 else
 {
-    chatMsg = rager.name + ' stops Raging. Phew<br>';
-	chatMsg += toggleRage(false);
+    chatMsg = '<h3>' + rager.name + ' stops Raging.</h3> <em>Phew</em><p>';
+	chatMsg += toggleRage(false) + '</p>';
 }
 
 
