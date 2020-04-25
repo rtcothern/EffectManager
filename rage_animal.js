@@ -6,6 +6,11 @@ let reportLine = function(stat, value)
 {
 	return `<small><i>New ${stat}:</i> ${value}</small><br>`;
 }
+let reportLineDelta = function(toggle, stat, value)
+{
+	let prefix = toggle ? "Gained" : "Lost";
+	return `<small><i>${prefix} ${stat}:</i> ${value}</small><br>`;
+}
 
 let toggleRage = function(toggle)
 {
@@ -86,7 +91,7 @@ let toggleRage = function(toggle)
 	}
 
 	let rageClause = toggle ? ' (Will be halved for Agile Weapons)' : '';
-	report += reportLine('Bonus Damage', bonusDamage + rageClause);
+	report += reportLineDelta(toggle, 'Bonus Damage', bonusDamage + rageClause);
 	report += reportLine('AC', (ragerData.attributes.ac.value - mult).toString());
 
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === rager.id);
@@ -105,7 +110,7 @@ if (toggle)
 }
 else
 {
-    chatMsg = '<h3>' + rager.name + ' stops Raging.</h3> <em>Phew</em><p>';
+    chatMsg = '<h3>' + rager.name + ' stops Raging.</h3> <em>Phew...</em><p>';
 	chatMsg += toggleRage(false) + '</p>';
 }
 
