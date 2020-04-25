@@ -18,15 +18,13 @@ let toggleRage = function(toggle)
 	report += 'New Temp HP: ' + hpMod + '<br>';
 
     let resVal = 3+level+ragerData.abilities.con.mod;
-	let numNewDR = 0;
 
 	let toggleResFn = function(type, name)
 	{
 		let resInd = ragerData.traits.dr.findIndex( trait => trait.type == type );
 		if ( resInd == -1 )
 		{
-			resInd = ragerData.traits.dr.length + (numNewDR++);
-			obj['data.traits.dr'][resInd] = { type: type, label: name, value: (mult*resVal).toString(), exceptions: ''};
+			obj['data.traits.dr'].push ({ type: type, label: name, value: (mult*resVal).toString(), exceptions: ''});
 		}
 		else
 		{
@@ -35,6 +33,7 @@ let toggleRage = function(toggle)
 		} 
 		report += 'New ' + name + ' Resistance: ' + obj['data.traits.dr'][resInd].value + '<br>';
 	}
+	// Slice operator to make a copy instead of reference
 	obj['data.traits.dr'] = [...ragerData.traits.dr];
 
 	toggleResFn('piercing', 'Piercing');
