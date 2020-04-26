@@ -1,15 +1,19 @@
 let rager = game.user.character;
 let ragerData = rager.data.data;
 let level = ragerData.details.level.value;
+let toggle = (rager.data.flags.raging == undefined || rager.data.flags.raging == false);
 
-let reportLine = function(stat, value)
+
+let reportLine = function(tog, stat, value)
 {
-	return `<small><b>New ${stat}:</b> ${value}</small><br>`;
+let color = tog? 'color:green;' : 'color:red;';
+	return `<p><b>New ${stat}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
-let reportLineDelta = function(toggle, stat, value)
+let reportLineDelta = function(stat, value)
 {
-	let prefix = toggle ? "Gained" : "Lost";
-	return `<small><b>${prefix} ${stat}:</b> ${value}</small><br>`;
+let color = toggle ? 'color:green;' : 'color:red;';
+	let prefix = toggle? "Gained" : "Lost";
+	return `<p><b>${prefix} ${stat}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
 
 let toggleRage = function(toggle)
@@ -25,7 +29,7 @@ let toggleRage = function(toggle)
 	hpMod = (hpMod >= 0) ? hpMod : 0;
 	obj['data.attributes.hp.temp'] = hpMod;
 
-	report += reportLine('Temp HP', hpMod);
+	report += reportLine( toggle, 'Temp HP', hpMod);
 
     let resVal = 3+level+ragerData.abilities.con.mod;
 
@@ -35,13 +39,14 @@ let toggleRage = function(toggle)
 		if ( resInd == -1 )
 		{
 			obj['data.traits.dr'].push ({ type: type, label: name, value: (mult*resVal).toString(), exceptions: ''});
+			resInd = obj['data.traits.dr'].length - 1;
 		}
 		else
 		{
 			let numberValue = +ragerData.traits.dr[resInd].value;
 			obj['data.traits.dr'][resInd].value = (+numberValue + mult*resVal).toString();
 		} 
-		report += reportLine(name + ' Resistance', obj['data.traits.dr'][resInd].value );
+		report += reportLine(toggle, name + ' Resistance', obj['data.traits.dr'][resInd].value );
 	}
 	// Slice operator to make a copy instead of reference
 	obj['data.traits.dr'] = [...ragerData.traits.dr];
@@ -90,9 +95,9 @@ let toggleRage = function(toggle)
 		operation[0].update(operation[1]);
 	}
 
-	report += reportLineDelta(toggle, 'Weapon Bonus Damage', bonusDamage);
-	report += reportLineDelta(toggle, 'Agile Weapon Bonus Damage', bonusDamage);
-	report += reportLine('AC', (ragerData.attributes.ac.value - mult).toString());
+	report += reportLineDelta('Weapon Bonus Damage', bonusDamage);
+	report += reportLineDelta('Agile Weapon Bonus Damage', Math.floor(bonusDamage/2));
+	report += reportLine(!toggle, 'AC', (ragerData.attributes.ac.value - mult).toString());
 
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === rager.id);
 	let statusEffectIndex = 12; //Placeholder until we can get a better image
@@ -103,16 +108,15 @@ let toggleRage = function(toggle)
 let chatMsg = '';       
 let obj = {};
 let flavor = '';
-let toggle = (rager.data.flags.raging == undefined || rager.data.flags.raging == false);
 if (toggle)
 {
-	flavor =  rager.name + ' begins Raging - <em>RAAAAARGH!!!</em>';
-	chatMsg = toggleRage(true) + '</p>';
+	flavor =  '<i>' + rager.name + ' begins Raging - RAAAAARGH!!!</i>';
+	chatMsg = toggleRage(true) ;
 }
 else
 {
-	flavor = rager.name + ' stops Raging - <em>Phew...</em>';
-	chatMsg = toggleRage(false) + '</p>';
+	flavor = '<i>' + rager.name + ' stops Raging - Phew...</i>';
+	chatMsg = toggleRage(false);
 }
 
 
