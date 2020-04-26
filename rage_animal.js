@@ -4,12 +4,12 @@ let level = ragerData.details.level.value;
 
 let reportLine = function(stat, value)
 {
-	return `<small><i>New ${stat}:</i> ${value}</small><br>`;
+	return `<small><b>New ${stat}:</b> ${value}</small><br>`;
 }
 let reportLineDelta = function(toggle, stat, value)
 {
 	let prefix = toggle ? "Gained" : "Lost";
-	return `<small><i>${prefix} ${stat}:</i> ${value}</small><br>`;
+	return `<small><b>${prefix} ${stat}:</b> ${value}</small><br>`;
 }
 
 let toggleRage = function(toggle)
@@ -74,8 +74,8 @@ let toggleRage = function(toggle)
 		let itObj = {}; 
 		if (it.type == 'weapon' && (it.data.data.range.value == 'melee' || it.data.data.range.value == 'reach') )
 		{
-			bonusDamage = it.data.data.traits.value.includes('agile') ? Math.floor(bonusDamage/2) : bonusDamage;
-			itObj['data.bonusDamageDamage.value'] = it.data.data.bonusDamage.value + mult*bonusDamage; 
+			let bonusD = it.data.data.traits.value.includes('agile') ? Math.floor(bonusDamage/2) : bonusDamage;
+			itObj['data.bonusDamageDamage.value'] = it.data.data.bonusDamage.value + mult*bonusD; 
 			updateOperations.push([ it, itObj]);
 		}
 		else if(it.type == 'armor' && it.data.data.equipped.value == true)
@@ -85,13 +85,13 @@ let toggleRage = function(toggle)
 		}
 	}
 
-	for ( operation of updateOperations )
+	for ( let operation of updateOperations )
 	{
-		operations[0].update(operation[1]);
+		operation[0].update(operation[1]);
 	}
 
-	let rageClause = toggle ? ' (Will be halved for Agile Weapons)' : '';
-	report += reportLineDelta(toggle, 'Bonus Damage', bonusDamage + rageClause);
+	report += reportLineDelta(toggle, 'Weapon Bonus Damage', bonusDamage);
+	report += reportLineDelta(toggle, 'Agile Weapon Bonus Damage', bonusDamage);
 	report += reportLine('AC', (ragerData.attributes.ac.value - mult).toString());
 
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === rager.id);
@@ -102,16 +102,17 @@ let toggleRage = function(toggle)
 
 let chatMsg = '';       
 let obj = {};
+let flavor = '';
 let toggle = (rager.data.flags.raging == undefined || rager.data.flags.raging == false);
 if (toggle)
 {
-    chatMsg = '<h3>' + rager.name + ' begins Raging!</h3> <em>RAAAAARGH!!!</em><p>';
-	chatMsg += toggleRage(true) + '</p>';
+	flavor =  rager.name + ' begins Raging - <em>RAAAAARGH!!!</em>';
+	chatMsg = toggleRage(true) + '</p>';
 }
 else
 {
-    chatMsg = '<h3>' + rager.name + ' stops Raging.</h3> <em>Phew...</em><p>';
-	chatMsg += toggleRage(false) + '</p>';
+	flavor = rager.name + ' stops Raging - <em>Phew...</em>';
+	chatMsg = toggleRage(false) + '</p>';
 }
 
 
@@ -119,9 +120,7 @@ let chatData = {
         user: game.user._id,
         speaker: ChatMessage.getSpeaker(),
         whisper: game.users.entities.filter(u => u._id == game.user._id).map(u => u._id),
+        flavor: flavor,
         content: chatMsg
     };
 ChatMessage.create(chatData, {});
-
-rebuke point
-rune frag 1/2
