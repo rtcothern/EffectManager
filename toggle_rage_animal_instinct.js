@@ -6,12 +6,12 @@ let toggle = (rager.data.flags.raging == undefined || rager.data.flags.raging ==
 
 let reportLine = function(tog, stat, value)
 {
-let color = tog? 'color:green;' : 'color:red;';
+	let color = tog? 'color:green;' : 'color:red;';
 	return `<p><b>New ${stat}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
 let reportLineDelta = function(stat, value)
 {
-let color = toggle ? 'color:green;' : 'color:red;';
+	let color = toggle ? 'color:green;' : 'color:red;';
 	let prefix = toggle? "Gained" : "Lost";
 	return `<p><b>${prefix} ${stat}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
