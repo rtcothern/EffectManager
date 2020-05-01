@@ -1,26 +1,13 @@
 {
-  "name": "mistwalker-scripts",
-  "title": "Mistwalker Scripts",
-  "description": "Mistwalker functionality",
+  "name": "mistwalker",
+  "title": "Mistwalker",
+  "description": "Mistwalker Functionality",
   "version": "0.1.0",
+  "compatibleCoreVersion": "0.5.5",
+  "minimumCoreVersion": "0.5.3",
   "author": "Raymond Cothern",
-  "minimumCoreVersion": "0.5.0",
+  "scripts": [],
   "url": "https://github.com/rtcothern/Mistwalker-Foundry-VTT-Scripts",
   "manifest": "https://raw.githubusercontent.com/rtcothern/Mistwalker-Foundry-VTT-Scripts/master/module.json",
-  "download": "https://github.com/rtcothern/Mistwalker-Foundry-VTT-Scripts/archive/master.zip",
-  "scripts": [
-    "./scripts/mistwalker.js", 
-  ],
-  "styles" : [
-    "./styles/mistwalker-styles.css",
-  ],
-  "packs": [
-    {
-        "name": "macros",
-        "label": "Mistwalker Macros",
-        "path": "packs/mistwalkermacros.db",
-        "module": "Mistwalker Scripts",
-        "entity": "Macro"
-    }
-  ]
+  "download": "https://github.com/rtcothern/Mistwalker-Foundry-VTT-Scripts/archive/master.zip"
 }
