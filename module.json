@@ -1,11 +1,13 @@
 {
   "name": "mistwalker-scripts",
   "title": "Mistwalker Scripts",
+  "description": "Mistwalker functionality",
   "version": "0.1.0",
   "author": "Raymond Cothern",
   "minimumCoreVersion": "0.5.0",
   "url": "https://github.com/rtcothern/Mistwalker-Foundry-VTT-Scripts",
   "manifest": "https://raw.githubusercontent.com/rtcothern/Mistwalker-Foundry-VTT-Scripts/master/module.json",
+  "download": "https://github.com/rtcothern/Mistwalker-Foundry-VTT-Scripts/archive/master.zip",
   "scripts": [
     "./scripts/mistwalker.js", 
   ],
