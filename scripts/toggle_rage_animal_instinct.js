@@ -48,6 +48,7 @@ let toggleRage = function(toggle)
 		} 
 		report += reportLine(toggle, name + ' Resistance', obj['data.traits.dr'][resInd].value );
 	}
+	/* Disabling DR for now
 	// Slice operator to make a copy instead of reference
 	obj['data.traits.dr'] = [...ragerData.traits.dr];
 
@@ -55,7 +56,7 @@ let toggleRage = function(toggle)
 	{
 		toggleResFn('piercing', 'Piercing');
 		toggleResFn('slashing', 'Slashing');
-	}
+	}*/
 
 	// Batch our update operations at the end so we only do them if we haven't hit errors
 	let updateOperations = [];
@@ -80,7 +81,7 @@ let toggleRage = function(toggle)
 		if (it.type == 'weapon' && (it.data.data.range.value == 'melee' || it.data.data.range.value == 'reach') )
 		{
 			let bonusD = it.data.data.traits.value.includes('agile') ? Math.floor(bonusDamage/2) : bonusDamage;
-			itObj['data.bonusDamageDamage.value'] = it.data.data.bonusDamage.value + mult*bonusD; 
+			itObj['data.bonusDamage.value'] = it.data.data.bonusDamage.value + mult*bonusD; 
 			updateOperations.push([ it, itObj]);
 		}
 		else if(it.type == 'armor' && it.data.data.equipped.value == true)
@@ -123,7 +124,6 @@ else
 let chatData = {
         user: game.user._id,
         speaker: ChatMessage.getSpeaker(),
-        whisper: game.users.entities.filter(u => u._id == game.user._id).map(u => u._id),
         flavor: flavor,
         content: chatMsg
     };
