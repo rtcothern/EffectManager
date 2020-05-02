@@ -10,13 +10,12 @@
  * 					 determines how others may use and modify your module
  */
 // Import TypeScript modules
-import * as utility from from "./scripts/utility_shared.js";
-import * as ac from from "./scripts/ac_shared.js";
+import * as utility from "./scripts/utility_shared.js";
+import * as ac from "./scripts/ac_shared.js";
 /* ------------------------------------ */
 /* Setup module							*/
 /* ------------------------------------ */
 Hooks.once('setup', function () {
-
     window.Mistwalker = 
     {
        Utility : utility,

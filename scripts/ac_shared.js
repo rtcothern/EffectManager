@@ -1,4 +1,4 @@
-let toggleACModifier = function(toggleName, modifier)
+export let toggleACModifier = function(toggleName, modifier)
 {
 	let char = game.user.character;
 	let toggle = !window.Mistwalker.Utility.getFlag(char, toggleName);
@@ -14,9 +14,10 @@ let toggleACModifier = function(toggleName, modifier)
             let msg = window.Mistwalker.Utility.createNewFieldValueHTML(toggle, "AC", +(char.data.data.attributes.ac.value) + mult*modifier);
             let dir = toggle ? 'Raises' : 'Lowers';
             let flavor = '<i>' + char.name + ` ${dir} Shield</i>`;
+			window.Mistwalker.Utility.toggleFlag(char, toggleName);
             return [flavor, msg];
 		}
 	}
-	window.Mistwalker.Utility.toggleFlag(char, toggleName);
+	return ['', 'Could not apply AC toggle, make sure you an Armor item equipped'];
 };
 
