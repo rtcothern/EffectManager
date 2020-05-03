@@ -30,3 +30,35 @@ export let performReportedOperation = function(operationFn, listArgs)
     };
 	ChatMessage.create(chatData, {});
 }
+
+export let toggleEffectOnChar = function(char, effectImagePath)
+{
+	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === char.id);
+	token.toggleEffect(effectImagePath);
+}
+ 
+export let toggleEffectOnSelfChar = function(effectImagePath)
+{
+	let char = game.user.character;
+	toggleEffectOnChar(char, effectImagePath);
+}
+
+export class ReportedOperation
+{
+	execute()
+	{
+		let result = this.operation();
+		let chatData = {
+	        user: game.user._id,
+	        speaker: ChatMessage.getSpeaker(),
+	        flavor: result[0],
+	        content: result[1]
+	    };
+		ChatMessage.create(chatData, {});
+	}
+	operation()
+	{
+		console.log("Virtual Base operation - Do not invoke directly");
+		return ['', ''];
+	}
+}
