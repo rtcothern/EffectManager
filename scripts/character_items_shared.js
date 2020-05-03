@@ -1,22 +1,19 @@
 import * as util from "./utility_shared.js";
 
-class OwnedItemEffect extends util.ReportedOperation
+class OwnedItemEffect extends util.ReportedOperationContent
 {
-	constructor(char, toggleName, calcModifierFn, flavorFn, effectImagePath)
+	constructor(char, toggleName, calcModifierFn )
 	{
 		super();
 		this.char = char;
 		this.toggleName = toggleName;
 		this.calcModifierFn = calcModifierFn;
-		this.flavorFn = flavorFn;
-		this.effectImagePath = effectImagePath;
 	}
 
 	applyEffectToItem(toggle, item)
 	{
 		console.log("Virtual Base toggleItemModifier - Do not invoke directly");
 	}
-
 	toggleEffect()
 	{
 		let toggle = !util.getFlag(this.char, this.toggleName);
@@ -29,7 +26,6 @@ class OwnedItemEffect extends util.ReportedOperation
 				updateOperations.push(operation);
 			}
 		}
-		let flavor = '';
 		let message = '';
 		if (updateOperations.length > 0)
 		{
@@ -41,24 +37,14 @@ class OwnedItemEffect extends util.ReportedOperation
 				item.update(objData);
 				message += msg;
 			}
-			util.toggleFlag(this.char, this.toggleName);
-
-			if(this.effectImagePath != undefined)
-			{
-				util.toggleEffectOnChar(this.char, this.effectImagePath);
-			}
-			if (this.flavorFn != undefined)
-			{
-				flavor = this.flavorFn(toggle, this.char);
-			}
 		}
 		else
 		{
-			flavor = ['No items were eligible for effect application'];
+			console.log(`No items were eligible for effect application for toggleName: ${this.toggleName}`);
 		}
-		return [flavor, message];
+		return message;
 	}
-	operation()
+	execute()
 	{
 		return this.toggleEffect();
 	}
@@ -74,8 +60,34 @@ export class OwnedItemEffect_AC extends OwnedItemEffect
 		{
 			let mod = this.calcModifierFn(item);
 			obj['data.armor.value'] = +(item.data.data.armor.value) + mult*mod;
-	        let msg = util.createNewFieldValueHTML(toggle, "AC", +(this.char.data.data.attributes.ac.value) + mult*mod);
-	        return [ item, obj, msg];
+
+			let colorToggle = mult*mod > 0;
+	        let msg = util.createNewFieldValueHTML(colorToggle, "AC", +(this.char.data.data.attributes.ac.value) + mult*mod);
+	        return [ item, obj, msg ];
+		}
+		return [];
+	}
+}
+
+export class OwnedItemEffect_Damage extends OwnedItemEffect
+{
+	constructor(char, toggleName, calcModifierFn, itemValidFn)
+	{
+		super(char, toggleName, calcModifierFn);
+		this.itemValidFn = itemValidFn || (()=>true);
+	}
+	applyEffectToItem(toggle, item)
+	{
+		let mult = toggle ? 1 : -1;
+		let obj = {};
+		if(item.type == 'weapon' && this.itemValidFn(item))
+		{
+			let mod = this.calcModifierFn(item);
+			obj['data.bonusDamage.value'] = +(item.data.data.bonusDamage.value + mult*mod); 
+			
+			let colorToggle = mult*mod > 0;
+	        let msg = util.createNewFieldValueHTML(colorToggle, `${item.name} Bonus Damage`, obj['data.bonusDamage.value']);
+	        return [ item, obj, msg ];
 		}
 		return [];
 	}

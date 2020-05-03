@@ -36,27 +36,46 @@ export let toggleEffectOnChar = function(char, effectImagePath)
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === char.id);
 	token.toggleEffect(effectImagePath);
 }
- 
-export let toggleEffectOnSelfChar = function(effectImagePath)
-{
-	let char = game.user.character;
-	toggleEffectOnChar(char, effectImagePath);
-}
 
-export class ReportedOperation
+export class ReportedToggleOperation
 {
-	execute()
+	constructor(char, toggleName, flavorFn, statusImagePath)
 	{
-		let result = this.operation();
+		this.char = char;
+		this.toggleName = toggleName;
+		this.flavorFn = flavorFn;
+		this.statusImagePath = statusImagePath;
+		this.content = '';
+	}
+	addContent(content)
+	{
+		let result = content.execute();
+		this.content += result;
+		return this;
+	}
+	display()
+	{
+		let toggle = !getFlag(this.char, this.toggleName);
+		let flav = this.flavorFn(toggle);
 		let chatData = {
 	        user: game.user._id,
 	        speaker: ChatMessage.getSpeaker(),
-	        flavor: result[0],
-	        content: result[1]
+	        flavor: flav,
+	        content: this.content
 	    };
 		ChatMessage.create(chatData, {});
+
+		toggleFlag(this.char, this.toggleName);
+		if(this.statusImagePath != undefined)
+		{
+			toggleEffectOnChar(this.char, this.statusImagePath);
+		}
 	}
-	operation()
+}
+
+export class ReportedOperationContent
+{
+	execute()
 	{
 		console.log("Virtual Base operation - Do not invoke directly");
 		return ['', ''];
