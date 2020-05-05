@@ -26,23 +26,11 @@ class OwnedItemEffect extends util.ReportedOperationContent
 				updateOperations.push(operation);
 			}
 		}
-		let message = '';
-		if (updateOperations.length > 0)
-		{
-			for (let op of updateOperations)
-			{
-				let item = 		op[0];
-				let objData = 	op[1];
-				let msg = 		op[2];
-				item.update(objData);
-				message += msg;
-			}
-		}
-		else
+		if (updateOperations.length == 0)
 		{
 			console.log(`No items were eligible for effect application for toggleName: ${this.toggleName}`);
 		}
-		return message;
+		return updateOperations;
 	}
 	execute()
 	{
@@ -52,6 +40,7 @@ class OwnedItemEffect extends util.ReportedOperationContent
 
 export class OwnedItemEffect_AC extends OwnedItemEffect
 {
+	opName() { return "AC Item Effect"; }
 	applyEffectToItem(toggle, item)
 	{
 		let mult = toggle ? 1 : -1;
@@ -71,6 +60,7 @@ export class OwnedItemEffect_AC extends OwnedItemEffect
 
 export class OwnedItemEffect_Damage extends OwnedItemEffect
 {
+	opName() { return "Bonus Damage Item Effect"; }
 	constructor(char, toggleName, calcModifierFn, itemValidFn)
 	{
 		super(char, toggleName, calcModifierFn);

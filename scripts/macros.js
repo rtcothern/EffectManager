@@ -19,7 +19,8 @@ export let ShieldSpell = function()
 	
 	let shieldACFn = (item) => 1;
 	let acItemEffect = new OwnedItemEffect_AC(char, flagName, shieldACFn);
-	operation.addContent(acItemEffect).display();
+	operation.addContent(acItemEffect);
+	operation.execute();
 }
 export let RaiseShield = function()
 {
@@ -38,7 +39,8 @@ export let RaiseShield = function()
 
 	let shieldACFn = (item) => char.data.data.attributes.shield.ac;
 	let acItemEffect = new OwnedItemEffect_AC(char, flagName, shieldACFn);
-	operation.addContent(acItemEffect).display();
+	operation.addContent(acItemEffect);
+	operation.execute();
 }
 export let ToggleRage = function()
 {
@@ -89,5 +91,8 @@ export let ToggleRage = function()
 	let acEffect = new OwnedItemEffect_AC(char, flagName, rageACFn);
 	let damageEffect = new OwnedItemEffect_Damage(char, flagName, rageDamageFn, rageWeaponValidFn);
 	
-	operation.addContent(tempHPEffect).addContent(acEffect).addContent(damageEffect).display();
+	operation.addContent(tempHPEffect);
+	operation.addContent(acEffect);
+	operation.addContent(damageEffect);
+	operation.execute();
 }

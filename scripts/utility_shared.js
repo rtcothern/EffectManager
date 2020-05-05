@@ -45,23 +45,59 @@ export class ReportedToggleOperation
 		this.toggleName = toggleName;
 		this.flavorFn = flavorFn;
 		this.statusImagePath = statusImagePath;
-		this.content = '';
+		this.updateOperations = [];
 	}
-	addContent(content)
+	addContent(opContent)
 	{
-		let result = content.execute();
-		this.content += result;
-		return this;
+		try {
+			let resultUpdates = opContent.execute();
+			if (!Array.isArray(resultUpdates))
+			{
+				console.log("Did not receive array back from execution call");
+				return;
+			}
+			for(let res of resultUpdates)
+			{
+				if (!Array.isArray(res) || res.length != 3)
+				{
+					console.log("Update operation received was badly formatted");
+					return;
+				}
+				this.updateOperations.push(res);
+			}
+			return true;
+		}
+		catch(err) {
+			let msg = `<i>There was an error applying operation <${opContent.opName()}> for flag name: ${opContent.toggleName}</i>`;
+			let chatData = {
+		        user: game.user._id,
+		        speaker: ChatMessage.getSpeaker(),
+		        whisper: game.users.entities.filter(u => u._id == game.user._id).map(u => u._id),
+		        content: msg
+		    };
+			ChatMessage.create(chatData, {});
+			throw err;
+		}
 	}
-	display()
+	execute()
 	{
+		let msg = "";
+		for(let updateOp of this.updateOperations)
+		{
+			let ent = updateOp[0]; 
+			let data = updateOp[1];
+			let message = updateOp[2];
+			ent.update(data);
+			msg += message;
+		}
+
 		let toggle = !getFlag(this.char, this.toggleName);
 		let flav = this.flavorFn(toggle);
 		let chatData = {
 	        user: game.user._id,
 	        speaker: ChatMessage.getSpeaker(),
 	        flavor: flav,
-	        content: this.content
+	        content: msg
 	    };
 		ChatMessage.create(chatData, {});
 
@@ -75,9 +111,10 @@ export class ReportedToggleOperation
 
 export class ReportedOperationContent
 {
+	opName() { return "Virtual Base Op Content Name"; }
 	execute()
 	{
 		console.log("Virtual Base operation - Do not invoke directly");
-		return ['', ''];
+		return [['', '']];
 	}
 }

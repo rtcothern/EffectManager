@@ -1,5 +1,6 @@
 import * as util from "./utility_shared.js";
 
+//todo generlize for character.data.data (has many thing such as abilities, currency, saves, traits, skills)
 export class AttributeEffect extends util.ReportedOperationContent
 {
 	constructor(char, toggleName, attributeDisplayName, attributePath, modifier )
@@ -29,14 +30,14 @@ export class AttributeEffect extends util.ReportedOperationContent
 
 		let obj = {};
 		obj[`data.attributes.${this.attributePath}`] = newVal;
-		this.char.update(obj);
 
 		let colorToggle = newVal > currentVal;
 		let message = util.createNewFieldValueHTML(colorToggle, this.attributeDisplayName, obj[`data.attributes.${this.attributePath}`]);
-		return message;
+		return [[obj, message]];
 	}
 	execute()
 	{
 		return this.toggleEffect();
 	}
+	opName() { return "Attribute Effect: " + this.attributeDisplayName; }
 }

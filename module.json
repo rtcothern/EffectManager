@@ -2,7 +2,7 @@
   "name": "Mistwalker-Foundry-Module",
   "title": "Mistwalker",
   "description": "Mistwalker Functionality",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "compatibleCoreVersion": "0.5.5",
   "minimumCoreVersion": "0.5.3",
   "author": "Raymond Cothern",
