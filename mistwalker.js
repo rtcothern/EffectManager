@@ -11,10 +11,16 @@
  */
 // Import TypeScript modules
 import * as macros from "./scripts/macros.js";
-/* ------------------------------------ */
+import ItemMistwalker from "./scripts/item_mistwalker.js";
+/* ------------------------------------ 
 /* Setup module							*/
 /* ------------------------------------ */
-Hooks.once('setup', function () {
+Hooks.once('init', function ()
+{
+	CONFIG.Item.entityClass = ItemMistwalker;
+});
+Hooks.once('setup', function () 
+{
     window.Mistwalker = 
     {
        Macros  	: macros
