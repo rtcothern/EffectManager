@@ -16,28 +16,16 @@ export let createNewFieldValueHTML = function(toggle, fieldName, value)
 {
 	// We'll clean this up with css later
 	let color = toggle? 'color:green;' : 'color:red;';
-	return `<p><b>New ${fieldName}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
+	return `<p><b>${fieldName}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
 
-export let performReportedOperation = function(operationFn, listArgs)
-{
-	let result = operationFn(...listArgs);
-	let chatData = {
-        user: game.user._id,
-        speaker: ChatMessage.getSpeaker(),
-        flavor: result[0],
-        content: result[1]
-    };
-	ChatMessage.create(chatData, {});
-}
-
-export let toggleEffectOnChar = function(char, effectImagePath)
+export let toggleStatusEffectOnChar = function(char, effectImagePath)
 {
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === char.id);
 	token.toggleEffect(effectImagePath);
 }
 
-export class ReportedToggleOperation
+export class ToggleOperation
 {
 	constructor(char, toggleName, flavorFn, statusImagePath)
 	{
@@ -46,11 +34,14 @@ export class ReportedToggleOperation
 		this.flavorFn = flavorFn;
 		this.statusImagePath = statusImagePath;
 		this.updateOperations = [];
+		this.updateMessage = "";
 	}
 	addContent(opContent)
 	{
 		try {
-			let resultUpdates = opContent.execute();
+			let resultData = opContent.execute();
+			let resultUpdates = resultData[0];
+			let resultMessage = resultData[1];
 			if (!Array.isArray(resultUpdates))
 			{
 				console.log("Did not receive array back from execution call");
@@ -58,17 +49,17 @@ export class ReportedToggleOperation
 			}
 			for(let res of resultUpdates)
 			{
-				if (!Array.isArray(res) || res.length != 3)
+				if (!Array.isArray(res) || res.length != 2)
 				{
 					console.log("Update operation received was badly formatted");
 					return;
 				}
 				this.updateOperations.push(res);
 			}
-			return true;
+			this.updateMessage += resultMessage;
 		}
 		catch(err) {
-			let msg = `<i>There was an error applying operation <${opContent.opName()}> for flag name: ${opContent.toggleName}</i>`;
+			let msg = `<i>There was an error applying operation '${opContent.dataPath}' for flag name: ${opContent.toggleName}</i>`;
 			let chatData = {
 		        user: game.user._id,
 		        speaker: ChatMessage.getSpeaker(),
@@ -81,14 +72,11 @@ export class ReportedToggleOperation
 	}
 	execute()
 	{
-		let msg = "";
 		for(let updateOp of this.updateOperations)
 		{
 			let ent = updateOp[0]; 
 			let data = updateOp[1];
-			let message = updateOp[2];
 			ent.update(data);
-			msg += message;
 		}
 
 		let toggle = !getFlag(this.char, this.toggleName);
@@ -97,24 +85,135 @@ export class ReportedToggleOperation
 	        user: game.user._id,
 	        speaker: ChatMessage.getSpeaker(),
 	        flavor: flav,
-	        content: msg
+	        content: this.updateMessage
 	    };
 		ChatMessage.create(chatData, {});
 
 		toggleFlag(this.char, this.toggleName);
 		if(this.statusImagePath != undefined)
 		{
-			toggleEffectOnChar(this.char, this.statusImagePath);
+			toggleStatusEffectOnChar(this.char, this.statusImagePath);
 		}
 	}
 }
 
-export class ReportedOperationContent
+//Soft factory pattern
+export class EffectCreator
 {
-	opName() { return "Virtual Base Op Content Name"; }
+	static constructACEffect(char, toggleName, dataValueFn)
+	{
+		let path = "armor.value";
+		let affectedEntities = char.items;
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		dataEffect.displayInfoFn = () => "AC";
+		dataEffect.entValidFn = function(item)
+		{
+			return item.type == 'armor' && item.data.data.equipped.value == true;
+		};
+	}
+	static constructNumBaseDDEffect(char, toggleName, dataValueFn)
+	{
+		let path = "damage.dice";
+		let affectedEntities = char.items;
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		dataEffect.displayInfoFn = () => "Num Base Damage Die";
+	}
+	static constructBaseDDEffect(char, toggleName, dataValueFn)
+	{
+		let path = "damage.die";
+		let affectedEntities = char.items;
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		dataEffect.displayInfoFn = () => "Base Damage Die";
+	}
+	static constructBonusDDEffect(char, toggleName, dataValueFn, diceNum, diceSize)
+	{
+		let path = "damage.bonusDice";
+		let affectedEntities = char.items;
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		dataEffect.displayInfoFn = function(benficial)
+		{
+			let dir = benficial ? 'Gained' : 'Lost';
+			return [`${dir} Bonus Damage Dice`, `${diceNum}${diceSize}`];
+		} 
+		dataEffect.entValidFn = function(ent)
+		{
+			return ent.type == "weapon";
+		} 
+		return dataEffect;
+	}
+}
+
+export class CharacterDataEffect
+{
+	constructor(char, toggleName, affectedEntities, dataPath, dataValueFn)
+	{
+		// Mandatory
+		this.char = char;
+		this.toggleName = toggleName;
+		this.affectedEntities = affectedEntities;
+		this.dataPath = dataPath;
+		this.dataValueFn = dataValueFn;
+
+		// Optional
+		this.displayInfoFn = null;
+		this.entValidFn = null;
+		this.toggleBeneficial = true;
+	}
 	execute()
 	{
-		console.log("Virtual Base operation - Do not invoke directly");
-		return [['', '']];
+		let toggle = !getFlag(this.char, this.toggleName);
+		let results = [];
+		let appliedOnce = false;
+		for ( let ent of this.affectedEntities )
+		{
+			if (this.entValidFn == null || this.entValidFn(ent))
+			{
+				let applyRes = this.applyEffectToEntity(ent, toggle);
+				if (applyRes != false)
+				{
+					results.push(applyRes);
+					appliedOnce = true;
+				}
+			}
+		}
+
+		let message = "";
+		if (this.displayInfoFn != null && appliedOnce )
+		{
+			let beneficial = this.toggleBeneficial ? toggle : !toggle;
+			let displayInfo = this.displayInfoFn(beneficial);
+			message = createNewFieldValueHTML(beneficial, displayInfo[0], displayInfo[1]);
+		}
+		return [results, message];
+	}
+	applyEffectToEntity(ent, toggle)
+	{
+		// step 1 - get current val
+		let currentVal = getProperty(ent.data.data, this.dataPath);
+
+		// step 2 - determine new val
+		let newValInfo = this.dataValueFn(toggle, ent, currentVal);
+		if (!newValInfo)
+		{
+			return false;
+		}
+
+		let obj = {};
+		obj[`data.${this.dataPath}`] = newValInfo[0];
+		return [ent,obj];
+	}
+	addEntValidClause(newClauseFn, isAnd)
+	{ 	
+		if (this.entValidFn == null)
+		{
+			this.entValidFn = newClauseFn;
+			return;
+		}
+
+		let oldVFn = this.entValidFn;
+		this.entValidFn = function(ent)
+		{
+			return (isAnd) ? oldVFn(ent) && newClauseFn(ent) : oldVFn(ent) || newClauseFn(ent);
+		};
 	}
 }

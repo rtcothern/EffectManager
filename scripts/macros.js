@@ -1,8 +1,8 @@
-import {OwnedItemEffect_AC, OwnedItemEffect_Damage} from "./character_items_shared.js";
-import {ReportedToggleOperation} from "./utility_shared.js";
-import {AttributeEffect} from './attributes_shared.js';
+/*import {OwnedItemEffect_AC, OwnedItemEffect_Damage} from "./character_items_shared.js";*/
+import {ToggleOperation, EffectCreator} from "./utility_shared.js";
+/*import {AttributeEffect} from './attributes_shared.js';*/
 
-export let ShieldSpell = function()
+/*export let ShieldSpell = function()
 {
 	let char = game.user.character;
 	let flagName = 'shieldSpellActive';
@@ -15,7 +15,7 @@ export let ShieldSpell = function()
 	    let flavor = `<i>${char.name} ${dir} a Shield of Magical Force${ending}</i>`;
 	    return flavor;
 	}
-	let operation = new ReportedToggleOperation(char, flagName, flavorFn, imagePath);
+	let operation = new ToggleOperation(char, flagName, flavorFn, imagePath);
 	
 	let shieldACFn = (item) => 1;
 	let acItemEffect = new OwnedItemEffect_AC(char, flagName, shieldACFn);
@@ -35,7 +35,7 @@ export let RaiseShield = function()
 	    let flavor = `<i>${char.name} ${dir} Shield${ending}</i>`;
 	    return flavor;
 	}
-	let operation = new ReportedToggleOperation(char, flagName, flavorFn, imagePath);
+	let operation = new ToggleOperation(char, flagName, flavorFn, imagePath);
 
 	let shieldACFn = (item) => char.data.data.attributes.shield.ac;
 	let acItemEffect = new OwnedItemEffect_AC(char, flagName, shieldACFn);
@@ -55,7 +55,7 @@ export let ToggleRage = function()
 	    return flavor;
 	}
 
-	let operation = new ReportedToggleOperation(char, flagName, flavorFn, imagePath);
+	let operation = new ToggleOperation(char, flagName, flavorFn, imagePath);
 
 	let ragerData = char.data.data;
 	let level = ragerData.details.level.value;
@@ -65,7 +65,6 @@ export let ToggleRage = function()
 	let rageACFn = (item) => -1;
 	let rageDamageFn = function(item) 
 	{
-		
 		let bonusDamage;
 		if (level >= 15 )
 		{
@@ -95,4 +94,49 @@ export let ToggleRage = function()
 	operation.addContent(acEffect);
 	operation.addContent(damageEffect);
 	operation.execute();
+}*/
+
+let ToggleBonusDamageDie = function(flagName, buffName, diceNum, diceSize, weaponValidFn)
+{
+	let char = game.user.character;
+	let flavorFn = function(toggle)
+	{
+	    let dir = toggle ? 'Gains' : 'Loses';
+	    let ending = toggle ? '!' : '...';
+	    let flavor = `<i>${char.name} ${dir} ${buffName}${ending}</i>`;
+	    return flavor;
+	}
+
+	let operation = new ToggleOperation(char, flagName, flavorFn);
+
+	let dataValueFn = function(toggle, ent, currentVal) 
+	{
+		currentVal = currentVal || {};
+		if (toggle || currentVal[flagName] === undefined)
+		{
+			currentVal[flagName] = [diceNum, diceSize];
+		}
+		else
+		{
+			delete currentVal[flagName];
+		}
+		return [currentVal, toggle];
+	};
+	
+	let effect = EffectCreator.constructBonusDDEffect(char, flagName, dataValueFn, diceNum, diceSize);
+	if (weaponValidFn)
+	{
+		effect.addEntValidClause(weaponValidFn, true);
+	}
+	operation.addContent(effect);
+	operation.execute();
+}
+
+export let Windforce = function()
+{
+	let weaponValidFn = function (ent)
+	{
+		return ent.data.data.group.value == "bow";
+	}
+	ToggleBonusDamageDie("windforceActive", "Windforce", 1, "d8", weaponValidFn);
 }
