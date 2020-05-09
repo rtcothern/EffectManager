@@ -1,13 +1,13 @@
 {
-  "name": "EffectManager",
-  "title": "Effect Manager",
-  "description": "Effect Manager Stuff",
+  "name": "Mistwalker-Foundry-Module",
+  "title": "Mistwalker",
+  "description": "Mistwalker Functionality",
   "version": "1.0.0",
   "compatibleCoreVersion": "0.5.5",
   "minimumCoreVersion": "0.5.3",
   "author": "Raymond Cothern",
   "esmodules": [
-    "effect_manager.js"
+    "mistwalker.js"
   ],
   "packs": [
     {
@@ -18,7 +18,7 @@
         "entity": "Macro"
     }
   ],
-  "url": "https://github.com/rtcothern/EffectManager",
-  "manifest": "https://raw.githubusercontent.com/rtcothern/EffectManager/master/module.json",
-  "download": "https://github.com/rtcothern/EffectManager/archive/master.zip"
+  "url": "https://github.com/rtcothern/Mistwalker-Foundry-Module",
+  "manifest": "https://raw.githubusercontent.com/rtcothern/Mistwalker-Foundry-Module/master/module.json",
+  "download": "https://github.com/rtcothern/Mistwalker-Foundry-Module/archive/master.zip"
 }
