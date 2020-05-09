@@ -34,14 +34,14 @@ export class ToggleOperation
 		this.flavorFn = flavorFn;
 		this.statusImagePath = statusImagePath;
 		this.updateOperations = [];
-		this.updateMessage = "";
+		this.updateDisplayFns = [];
 	}
 	addContent(opContent)
 	{
 		try {
 			let resultData = opContent.execute();
 			let resultUpdates = resultData[0];
-			let resultMessage = resultData[1];
+			let resultDisplayInfoFn = resultData[1];
 			if (!Array.isArray(resultUpdates))
 			{
 				console.log("Did not receive array back from execution call");
@@ -56,10 +56,13 @@ export class ToggleOperation
 				}
 				this.updateOperations.push(res);
 			}
-			this.updateMessage += resultMessage;
+			if (resultDisplayInfoFn)
+			{
+				this.updateDisplayFns.push(resultDisplayInfoFn);
+			}
 		}
 		catch(err) {
-			let msg = `<i>There was an error applying operation '${opContent.dataPath}' for flag name: ${opContent.toggleName}</i>`;
+			let msg = `<i><p>Error: ${err}</p> For '${opContent.dataPath}' with flag name: ${opContent.toggleName}</i>`;
 			let chatData = {
 		        user: game.user._id,
 		        speaker: ChatMessage.getSpeaker(),
@@ -72,20 +75,32 @@ export class ToggleOperation
 	}
 	execute()
 	{
+		let promises = [];
 		for(let updateOp of this.updateOperations)
 		{
 			let ent = updateOp[0]; 
 			let data = updateOp[1];
-			ent.update(data);
+			promises.push(ent.update(data));
 		}
-
+		Promise.all(promises).then(values => {
+			this.toggle();
+		});
+		
+	}
+	toggle()
+	{
 		let toggle = !getFlag(this.char, this.toggleName);
 		let flav = this.flavorFn(toggle);
+		let message = "";
+		for (let dispFn of this.updateDisplayFns)
+		{
+			message += dispFn(toggle);
+		}
 		let chatData = {
 	        user: game.user._id,
 	        speaker: ChatMessage.getSpeaker(),
 	        flavor: flav,
-	        content: this.updateMessage
+	        content: message
 	    };
 		ChatMessage.create(chatData, {});
 
@@ -100,40 +115,78 @@ export class ToggleOperation
 //Soft factory pattern
 export class EffectCreator
 {
+	static constructAttributeEffect(char, toggleName, dataValueFn, path, displayName)
+	{
+		let fullPath = `attributes.${path}`;
+		let affectedEntities = [char];
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, fullPath, dataValueFn);
+		dataEffect.displayInfoFn = function(toggle)
+		{
+			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
+			return createNewFieldValueHTML(toggle, `New ${displayName}`, getProperty(char.data.data, fullPath));
+		}
+		return dataEffect;
+	}
 	static constructACEffect(char, toggleName, dataValueFn)
 	{
 		let path = "armor.value";
 		let affectedEntities = char.items;
 		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
-		dataEffect.displayInfoFn = () => "AC";
+		dataEffect.displayInfoFn = function(toggle)
+		{
+			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
+			return createNewFieldValueHTML(toggle, "New AC", char.data.data.attributes.ac.value);
+		}
 		dataEffect.entValidFn = function(item)
 		{
 			return item.type == 'armor' && item.data.data.equipped.value == true;
 		};
+		return dataEffect;
 	}
-	static constructNumBaseDDEffect(char, toggleName, dataValueFn)
-	{
-		let path = "damage.dice";
-		let affectedEntities = char.items;
-		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
-		dataEffect.displayInfoFn = () => "Num Base Damage Die";
-	}
-	static constructBaseDDEffect(char, toggleName, dataValueFn)
+	static constructBaseDDStepEffect(char, toggleName, dataValueFn)
 	{
 		let path = "damage.die";
 		let affectedEntities = char.items;
 		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
-		dataEffect.displayInfoFn = () => "Base Damage Die";
+		dataEffect.displayInfoFn = function(toggle)
+		{
+			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
+			let dir = toggle ? 'Stepped Up' : 'Stepped Down';
+			return createNewFieldValueHTML(toggle, "Weapon Damage Dice", dir);
+		}
+		dataEffect.entValidFn = function(ent)
+		{
+			return ent.type == "weapon";
+		} 
+		return dataEffect;
 	}
 	static constructBonusDDEffect(char, toggleName, dataValueFn, diceNum, diceSize)
 	{
 		let path = "damage.bonusDice";
 		let affectedEntities = char.items;
 		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
-		dataEffect.displayInfoFn = function(benficial)
+		dataEffect.displayInfoFn = function(toggle)
 		{
-			let dir = benficial ? 'Gained' : 'Lost';
-			return [`${dir} Bonus Damage Dice`, `${diceNum}${diceSize}`];
+			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
+			let dir = toggle ? 'Gained' : 'Lost';
+			return createNewFieldValueHTML(toggle, `${dir} Bonus Damage Dice`, `${diceNum}${diceSize}`);
+		} 
+		dataEffect.entValidFn = function(ent)
+		{
+			return ent.type == "weapon";
+		} 
+		return dataEffect;
+	}
+	static constructBonusDamageEffect(char, toggleName, dataValueFn, damageAmount)
+	{
+		let path = "damage.bonusDamage";
+		let affectedEntities = char.items;
+		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		dataEffect.displayInfoFn = function(toggle)
+		{
+			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
+			let dir = toggle ? 'Gained' : 'Lost';
+			return createNewFieldValueHTML(toggle, `${dir} Bonus Damage`, `${damageAmount}`);
 		} 
 		dataEffect.entValidFn = function(ent)
 		{
@@ -176,15 +229,11 @@ export class CharacterDataEffect
 				}
 			}
 		}
-
-		let message = "";
-		if (this.displayInfoFn != null && appliedOnce )
+		if (!appliedOnce)
 		{
-			let beneficial = this.toggleBeneficial ? toggle : !toggle;
-			let displayInfo = this.displayInfoFn(beneficial);
-			message = createNewFieldValueHTML(beneficial, displayInfo[0], displayInfo[1]);
+			throw "No valid entity to apply effect to!";
 		}
-		return [results, message];
+		return [results, this.displayInfoFn];
 	}
 	applyEffectToEntity(ent, toggle)
 	{
@@ -193,13 +242,13 @@ export class CharacterDataEffect
 
 		// step 2 - determine new val
 		let newValInfo = this.dataValueFn(toggle, ent, currentVal);
-		if (!newValInfo)
+		if (newValInfo === false)
 		{
 			return false;
 		}
 
 		let obj = {};
-		obj[`data.${this.dataPath}`] = newValInfo[0];
+		obj[`data.${this.dataPath}`] = newValInfo;
 		return [ent,obj];
 	}
 	addEntValidClause(newClauseFn, isAnd)
