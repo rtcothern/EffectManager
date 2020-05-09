@@ -1,24 +1,24 @@
 {
-  "name": "Mistwalker-Foundry-Module",
-  "title": "Mistwalker",
-  "description": "Mistwalker Functionality",
+  "name": "EffectManager",
+  "title": "Effect Manager",
+  "description": "A module for applying useful persistent effects to characters",
   "version": "1.0.0",
   "compatibleCoreVersion": "0.5.5",
   "minimumCoreVersion": "0.5.3",
   "author": "Raymond Cothern",
   "esmodules": [
-    "mistwalker.js"
+    "effect_manager.js"
   ],
   "packs": [
     {
         "name": "macros",
-        "label": "Mistwalker Macros",
-        "path": "./packs/mistwalkermacros.db",
-        "module": "Mistwalker Scripts",
+        "label": "Character Effect Macros",
+        "path": "./packs/efmacros.db",
+        "module": "Effect Manager",
         "entity": "Macro"
     }
   ],
-  "url": "https://github.com/rtcothern/Mistwalker-Foundry-Module",
-  "manifest": "https://raw.githubusercontent.com/rtcothern/Mistwalker-Foundry-Module/master/module.json",
-  "download": "https://github.com/rtcothern/Mistwalker-Foundry-Module/archive/master.zip"
+  "url": "https://github.com/rtcothern/EffectManager",
+  "manifest": "https://raw.githubusercontent.com/rtcothern/EffectManager/master/module.json",
+  "download": "https://github.com/rtcothern/EffectManager/archive/master.zip"
 }

@@ -179,7 +179,7 @@ export class EffectCreator
 	}
 	static constructBonusDamageEffect(char, toggleName, dataValueFn, damageAmount)
 	{
-		let path = "damage.bonusDamage";
+		let path = "bonusDamage.value";
 		let affectedEntities = char.items;
 		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
