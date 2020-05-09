@@ -1,6 +1,6 @@
 import ItemPF2e from '../../../systems/pf2e/module/item/item.js';
 
-export default class ItemMistwalker extends ItemPF2e
+export default class ItemEF extends ItemPF2e
 {
 	rollWeaponDamage(event, critical = false) 
 	{
