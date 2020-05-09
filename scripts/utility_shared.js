@@ -9,7 +9,7 @@ export let toggleFlag = function(char, toggleName)
 
 	let charObj = {};
 	charObj['flags.'+toggleName] = toggle;
-	char.update(charObj );
+	return char.update(charObj );
 }
 
 export let createNewFieldValueHTML = function(toggle, fieldName, value)
@@ -27,6 +27,7 @@ export let toggleStatusEffectOnChar = function(char, effectImagePath)
 
 export class ToggleOperation
 {
+	static privateReportingFlag = "privateMacroReporting";
 	constructor(char, toggleName, flavorFn, statusImagePath)
 	{
 		this.char = char;
@@ -101,7 +102,12 @@ export class ToggleOperation
 	        speaker: ChatMessage.getSpeaker(),
 	        flavor: flav,
 	        content: message
-	    };
+		};
+		
+		if (getFlag(this.char, ToggleOperation.privateReportingFlag))
+		{
+			chatData.whisper = [game.user];
+		}
 		ChatMessage.create(chatData, {});
 
 		toggleFlag(this.char, this.toggleName);

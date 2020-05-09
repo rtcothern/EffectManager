@@ -1,4 +1,28 @@
-import {ToggleOperation, EffectCreator} from "./utility_shared.js";
+import {ToggleOperation, EffectCreator, toggleFlag, getFlag} from "./utility_shared.js";
+
+export let ToggleMacroPrivateReporting = function()
+{
+	let char = game.user.character;
+	let flagName = ToggleOperation.privateReportingFlag;
+	let chatData = {
+		user: game.user._id,
+		speaker: ChatMessage.getSpeaker(),
+		whisper: game.users.entities.filter(u => u._id == game.user._id).map(u => u._id),
+	};
+
+	toggleFlag(char, flagName).then( () =>
+		{
+			let msg = getFlag(char, flagName) ? "ON" : "OFF";
+			chatData.content = `<i> Toggled private macro reporting: ${msg}</i>`;
+			ChatMessage.create(chatData, {});
+		},
+		() => 
+		{
+			chatData.content = `<i> Failed to toggle private reporting flag</i>`;
+			ChatMessage.create(chatData, {});
+		}
+	);
+}
 
 export let ToggleRage = function()
 {
