@@ -167,7 +167,8 @@ let ShieldSpell = function()
 	let dataValueFn = function(toggle, ent, currentVal)
 	{
 		let mult = toggle ? 1 : -1;
-		return (+currentVal + mult * 1).toString();
+	    let value = 1;
+		return (+currentVal + mult * value).toString();
 	}
 	window.EffectManager.Macros.ToggleAC(buffName, statusEffectIcon, flavorFn, dataValueFn);
 }
