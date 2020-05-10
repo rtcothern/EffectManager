@@ -12,6 +12,7 @@
 // Import TypeScript modules
 import * as macros from "./scripts/macros.js";
 import ItemEF from "./scripts/item_ef.js";
+import {ToggleOperation} from "./scripts/utility_shared.js";
 /* ------------------------------------ 
 /* Setup module							*/
 /* ------------------------------------ */
@@ -23,6 +24,7 @@ Hooks.once('setup', function ()
 {
     window.EffectManager = 
     {
-       Macros  	: macros
+       Macros  	: macros,
+       ToggleOperation : ToggleOperation
     };
 });

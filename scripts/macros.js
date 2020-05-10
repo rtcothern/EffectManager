@@ -24,6 +24,7 @@ export let ToggleMacroPrivateReporting = function()
 	);
 }
 
+// Specific Effect Functions - Those complex enough to warrant their own macros
 export let ToggleRage = function()
 {
 	let char = game.user.character;
@@ -93,19 +94,33 @@ export let ToggleRage = function()
 	operation.execute();
 }
 
-export let ToggleBonusDamageDie = function(flagName, buffDisplayName, statusImagePath, diceNum, diceSize, damageType, weaponValidFn)
+
+// Generic Content Generation Functions
+export let AddBonusDamageContent = function(operation, flagName, damageAmount, weaponValidFn)
 {
-	let char = game.user.character;
-	let flavorFn = function(toggle)
+	let dataValueFn = function(toggle, ent, currentVal) 
 	{
-	    let dir = toggle ? 'Gains' : 'Loses';
-	    let ending = toggle ? '!' : '...';
-	    let flavor = `<i>${char.name} ${dir} ${buffDisplayName}${ending}</i>`;
-	    return flavor;
+		if (damageAmount instanceof Function)
+		{
+			return damageAmount(toggle, ent, currentVal);
+		}
+		else
+		{
+			let mult = toggle ? 1 : -1;
+			return (+currentVal + mult * damageAmount).toString();
+		}
+	};
+	
+	let effect = EffectCreator.constructBonusDamageEffect(operation.char, flagName, dataValueFn, damageAmount);
+	if (weaponValidFn != null && weaponValidFn != undefined)
+	{
+		effect.addEntValidClause(weaponValidFn, true);
 	}
+	operation.addContent(effect);
+}
 
-	let operation = new ToggleOperation(char, flagName, flavorFn, statusImagePath);
-
+export let AddBonusDamageDieContent = function(operation, flagName, diceNum, diceSize, damageType, weaponValidFn)
+{
 	let dataValueFn = function(toggle, ent, currentVal) 
 	{
 		currentVal = currentVal || {};
@@ -124,28 +139,16 @@ export let ToggleBonusDamageDie = function(flagName, buffDisplayName, statusImag
 		return currentVal;
 	};
 	
-	let effect = EffectCreator.constructBonusDDEffect(char, flagName, dataValueFn, diceNum, diceSize);
+	let effect = EffectCreator.constructBonusDDEffect(operation.char, flagName, dataValueFn, diceNum, diceSize);
 	if (weaponValidFn != null && weaponValidFn != undefined)
 	{
 		effect.addEntValidClause(weaponValidFn, true);
 	}
 	operation.addContent(effect);
-	operation.execute();
 }
 
-export let ToggleDamageDiceStep = function(flagName, buffDisplayName, statusImagePath, stepUp, weaponValidFn )
+export let AddDamageDiceStepContent = function(operation, flagName, stepUp, weaponValidFn )
 {
-	let char = game.user.character;
-	let flavorFn = function(toggle)
-	{
-	    let dir = toggle ? 'Gains' : 'Loses';
-	    let ending = toggle ? '!' : '...';
-	    let flavor = `<i>${char.name} ${dir} ${buffDisplayName}${ending}</i>`;
-	    return flavor;
-	}
-
-	let operation = new ToggleOperation(char, flagName, flavorFn, statusImagePath);
-
 	let dataValueFn = function(toggle, ent, currentVal) 
 	{
 		let dieSize = +currentVal.substring(1);
@@ -156,85 +159,21 @@ export let ToggleDamageDiceStep = function(flagName, buffDisplayName, statusImag
 		return `d${dieSize}`;
 	};
 
-	let effect = EffectCreator.constructBaseDDStepEffect(char, flagName, dataValueFn);
+	let effect = EffectCreator.constructBaseDDStepEffect(operation.char, flagName, dataValueFn);
 	effect.toggleBeneficial = stepUp; 
 	if (weaponValidFn != null && weaponValidFn != undefined)
 	{
 		effect.addEntValidClause(weaponValidFn, true);
 	}
 	operation.addContent(effect);
-	operation.execute();
 }
-export let ToggleAC = function(flagName, statusImagePath, flavorFn, dataValueFn)
+export let AddACContent = function(operation, flagName, acValue)
 {
-	let char = game.user.character;
-	let operation = new ToggleOperation(char, flagName, flavorFn, statusImagePath);
-	let effect = EffectCreator.constructACEffect(char, flagName, dataValueFn);
+	let dataValueFn = function(toggle, ent, currentVal)
+	{
+		let mult = toggle ? 1 : -1;
+		return (+currentVal + mult * acValue).toString();
+	}
+	let effect = EffectCreator.constructACEffect(operation.char, flagName, dataValueFn);
 	operation.addContent(effect);
-	operation.execute();
-}
-
-
-// Example Macros
-let ShieldSpell = function()
-{
-	let char = game.user.character;
-	let buffName = 'shieldSpellActive';
-	let statusEffectIcon = 'icons/svg/mage-shield.svg';
-	let flavorFn = function(toggle)
-	{
-		let dir = toggle ? 'Gains' : 'Loses';
-		let ending = toggle ? '!' : '...';
-		let flavor = `<i>${char.name} ${dir} a Shield of Magical Force${ending}</i>`;
-		return flavor;
-	}
-	let dataValueFn = function(toggle, ent, currentVal)
-	{
-		let mult = toggle ? 1 : -1;
-	    let value = 1;
-		return (+currentVal + mult * value).toString();
-	}
-	window.EffectManager.Macros.ToggleAC(buffName, statusEffectIcon, flavorFn, dataValueFn);
-}
-let RaiseShield = function()
-{
-	let char = game.user.character;
-	let buffName = 'shieldBlockActive';
-	let statusEffectIcon = 'icons/svg/shield.svg';
-	let flavorFn = function(toggle)
-	{
-		let dir = toggle ? 'Raises' : 'Lowers';
-		let ending = toggle ? '!' : '...';
-		let flavor = `<i>${char.name} ${dir} Shield${ending}</i>`;
-		return flavor;
-	}
-	let dataValueFn = function(toggle, ent, currentVal)
-	{
-		let mult = toggle ? 1 : -1;
-		return (+currentVal + mult * char.data.data.attributes.shield.ac).toString();
-	}
-	window.EffectManager.Macros.ToggleAC(buffName, statusEffectIcon, flavorFn, dataValueFn);
-}
-let Windforce = function()
-{
-	let buffName = "windforceActive";
-	let buffDisplayName = "Windforce";
-	let stepUp = true;
-	let statusEffectIcon = "icons/svg/windmill.svg"; //Optional, set to null if unwanted
-	let entityValidFn = function (ent) //Optional, set to null if unwanted
-	{
-		return ent.data.data.group.value == "bow";
-	}
-	window.EffectManager.Macros.ToggleDamageDiceStep(buffName, buffDisplayName, statusEffectIcon, stepUp, entityValidFn);
-}
-let Nexavar = function()
-{
-	let buffName = "nexavarActive";
-	let buffDisplayName = "Nexavar";
-	let diceNum = 1;
-	let diceType = "d8";
-	let damageType = "Precision";
-	let statusEffectIcon = "icons/svg/biohazard.svg"; //Optional, set to null if unwanted
-	let entityValidFn = null; //Optional, set to null if unwanted
-	window.EffectManager.Macros.ToggleBonusDamageDie(buffName, buffDisplayName, statusEffectIcon, diceNum, diceType, damageType, entityValidFn);
 }

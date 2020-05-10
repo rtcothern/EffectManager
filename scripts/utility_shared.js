@@ -116,6 +116,18 @@ export class ToggleOperation
 			toggleStatusEffectOnChar(this.char, this.statusImagePath);
 		}
 	}
+	static createFlavorFn(onBeginning, offBeginning, middle, onEnding, offEnding)
+	{
+		let char = game.user.character;
+		let flavorFn = function(toggle)
+		{
+			let dir = toggle ? onBeginning : offBeginning;
+			let ending = toggle ? onEnding : offEnding;
+			let flavor = `<i>${char.name} ${dir} ${middle}${ending}</i>`;
+			return flavor;
+		}
+		return flavorFn;
+	}
 }
 
 //Soft factory pattern
