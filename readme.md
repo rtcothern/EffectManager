@@ -2,6 +2,7 @@
 A Foundry VTT Module for applying useful persistent effects to Characters.
 
 ## Creating Your Own Macros
+*NOTE - You'll also find several examples illustrating this process in the **Character Effect Macros** Compendium included with the module.*
 While there are certainly plety of effects that are complex enough that I'll need to write a macro specifically for them, there are also a lot of abilities out there that do the exact same thing but with different values. I've made some pieces of generic functionality in the hopes you'll be able to put them together to create your own specific buffs.
 
 ### Macro Structure
@@ -15,15 +16,15 @@ let buffName = "myBuffID";
 let statusEffectIcon = "icons/svg/biohazard.svg"; // Optional, set '= null;' if undesired
 ```
 
-Now we specify some variables for the flavor message that will be created when toggling the buff:
+Now we specify some variables for the flavor message that will be created when toggling the buff. These will be put together depending on if you're toggling your buff on or off.
 ```
 let flavBegin_On = "Gains", flavBegin_Off = "Loses";
-let flavMiddle = "Nexavar";
+let flavMiddle = "My super awesome buff";
 let flavEnding_On = "!", flavEnding_Off = "...";
 let flavorFn = window.EffectManager.ToggleOperation.createFlavorFn(flavBegin_On, flavBegin_Off, flavMiddle, flavEnding_On, flavEnding_Off);
 ```
 
-Finally we create the operation itself
+Finally we create the operation itself (this will be the same for every macro).
 ```
 let char = game.user.character;
 let operation = new window.EffectManager.ToggleOperation(char, buffName, flavorFn, statusEffectIcon);
@@ -59,7 +60,7 @@ operation.execute();
 ```
 
 ### Currently Available Content Functions
-Below are what I've implemented so far. You'll also find several examples of using these in the Character Effect Macros Compendium included with the module.
+Below are what I've implemented so far.
 ```
 window.EffectManager.EffectCreator.AC(operation, acValue);
 window.EffectManager.EffectCreator.BaseDamageStep(operation, stepUp )
