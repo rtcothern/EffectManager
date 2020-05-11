@@ -133,7 +133,7 @@ export class ToggleOperation
 //Soft factory pattern
 export class EffectCreator
 {
-	static constructAttributeEffect(char, toggleName, dataValueFn, path, displayName)
+	static Attribute(char, toggleName, dataValueFn, path, displayName)
 	{
 		let fullPath = `attributes.${path}`;
 		let affectedEntities = [char];
@@ -142,74 +142,123 @@ export class EffectCreator
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
 			return createNewFieldValueHTML(toggle, `New ${displayName}`, getProperty(char.data.data, fullPath));
-		}
+		};
 		return dataEffect;
 	}
-	static constructACEffect(char, toggleName, dataValueFn)
+	static AC(operation, acValue)
 	{
 		let path = "armor.value";
+		let char = operation.char;
 		let affectedEntities = char.items;
-		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		let dataValueFn = function(toggle, ent, currentVal)
+		{
+			if (acValue instanceof Function)
+			{
+				acValue = acValue(toggle, ent, currentVal).toString();
+			}
+			let mult = toggle ? 1 : -1;
+			return (+currentVal + mult * acValue).toString();
+		};
+		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
 			return createNewFieldValueHTML(toggle, "New AC", char.data.data.attributes.ac.value);
-		}
+		};
 		dataEffect.entValidFn = function(item)
 		{
 			return item.type == 'armor' && item.data.data.equipped.value == true;
 		};
 		return dataEffect;
 	}
-	static constructBaseDDStepEffect(char, toggleName, dataValueFn)
+	static BaseDamageStep(operation, stepUp)
 	{
 		let path = "damage.die";
+		let char = operation.char;
 		let affectedEntities = char.items;
-		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		let dataValueFn = function(toggle, ent, currentVal) 
+		{
+			let dieSize = +currentVal.substring(1);
+			let dir = toggle ? stepUp : !stepUp;
+			dieSize = dir ? dieSize+2 : dieSize-2;
+			dieSize = Math.min(dieSize, 12);
+			dieSize = Math.max(dieSize, 4);
+			return `d${dieSize}`;
+		};
+		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
 			let dir = toggle ? 'Stepped Up' : 'Stepped Down';
 			return createNewFieldValueHTML(toggle, "Weapon Damage Dice", dir);
-		}
+		};
 		dataEffect.entValidFn = function(ent)
 		{
 			return ent.type == "weapon";
-		} 
+		}; 
 		return dataEffect;
 	}
-	static constructBonusDDEffect(char, toggleName, dataValueFn, diceNum, diceSize)
+	static BonusDamageDice(operation, diceNum, diceSize, damageType)
 	{
 		let path = "damage.bonusDice";
+		let char = operation.char;
 		let affectedEntities = char.items;
+		let toggleName = operation.toggleName;
+		let dataValueFn = function(toggle, ent, currentVal) 
+		{
+			currentVal = currentVal || {};
+			if (toggle || currentVal[toggleName] === undefined)
+			{
+				currentVal[toggleName] = [diceNum, diceSize, damageType];
+			}
+			else
+			{
+				delete currentVal[toggleName];
+			}
+			if (Object.keys(currentVal).length === 0)
+			{
+				currentVal = null;
+			}
+			return currentVal;
+		};
 		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
 			let dir = toggle ? 'Gained' : 'Lost';
 			return createNewFieldValueHTML(toggle, `${dir} Bonus Damage Dice`, `${diceNum}${diceSize}`);
-		} 
+		};
 		dataEffect.entValidFn = function(ent)
 		{
 			return ent.type == "weapon";
-		} 
+		}; 
 		return dataEffect;
 	}
-	static constructBonusDamageEffect(char, toggleName, dataValueFn, damageAmount)
+	static BonusDamage(operation, damageAmount)
 	{
 		let path = "bonusDamage.value";
+		let char = operation.char;
 		let affectedEntities = char.items;
-		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, path, dataValueFn);
+		let dataValueFn = function(toggle, ent, currentVal) 
+		{
+			if (damageAmount instanceof Function)
+			{
+				damageAmount = damageAmount(toggle, ent, currentVal);
+			}
+			let mult = toggle ? 1 : -1;
+			return (+currentVal + mult * damageAmount).toString();
+		};
+		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
 			let dir = toggle ? 'Gained' : 'Lost';
 			return createNewFieldValueHTML(toggle, `${dir} Bonus Damage`, `${damageAmount}`);
-		} 
+		}; 
 		dataEffect.entValidFn = function(ent)
 		{
 			return ent.type == "weapon";
-		} 
+		}; 
 		return dataEffect;
 	}
 }
