@@ -3,6 +3,7 @@ A Foundry VTT Module for applying useful persistent effects to Characters.
 
 ## Creating Your Own Macros
 *NOTE - You'll also find several examples illustrating this process in the **Character Effect Macros** Compendium included with the module.*
+
 While there are certainly plety of effects that are complex enough that I'll need to write a macro specifically for them, there are also a lot of abilities out there that do the exact same thing but with different values. I've made some pieces of generic functionality in the hopes you'll be able to put them together to create your own specific buffs.
 
 ### Macro Structure
