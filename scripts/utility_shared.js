@@ -19,7 +19,7 @@ export let createNewFieldValueHTML = function(toggle, fieldName, value)
 	return `<p><b>${fieldName}:</b> <span style="${color}; background-color:lightyellow; border:1px solid; border-radius: 3px; padding-left: 2px; padding-right: 2px">${value}</span></p>`;
 }
 
-export let toggleStatusEffectOnChar = function(char, effectImagePath)
+let toggleStatusEffectOnChar = function(char, effectImagePath)
 {
 	let token = canvas.tokens.ownedTokens.find(t => t.actor.id === char.id);
 	token.toggleEffect(effectImagePath);
@@ -133,15 +133,27 @@ export class ToggleOperation
 //Soft factory pattern
 export class EffectCreator
 {
-	static Attribute(char, toggleName, dataValueFn, path, displayName)
+	static Attribute(operation, attrPath, attrVal, displayName)
 	{
-		let fullPath = `attributes.${path}`;
+		let path = `attributes.${attrPath}`;
+		let char = operation.char;
 		let affectedEntities = [char];
-		let dataEffect = new CharacterDataEffect(char, toggleName, affectedEntities, fullPath, dataValueFn);
+		let dataValueFn = function(toggle, ent, currentVal) 
+		{
+			let val = attrVal;
+			if (attrVal instanceof Function)
+			{
+				val = attrVal(toggle, ent, currentVal);
+			}
+			let mult = toggle ? 1 : -1;
+			let result = currentVal + mult*val;
+			return Math.max(result, 0);
+		}
+		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
 		{
 			toggle = dataEffect.toggleBeneficial ? toggle : !toggle;
-			return createNewFieldValueHTML(toggle, `New ${displayName}`, getProperty(char.data.data, fullPath));
+			return createNewFieldValueHTML(toggle, `New ${displayName}`, getProperty(char.data.data, path));
 		};
 		return dataEffect;
 	}
@@ -152,12 +164,13 @@ export class EffectCreator
 		let affectedEntities = char.items;
 		let dataValueFn = function(toggle, ent, currentVal)
 		{
+			let val = acValue;
 			if (acValue instanceof Function)
 			{
-				acValue = acValue(toggle, ent, currentVal).toString();
+				val = acValue(toggle, ent, currentVal).toString();
 			}
 			let mult = toggle ? 1 : -1;
-			return (+currentVal + mult * acValue).toString();
+			return (+currentVal + mult * val).toString();
 		};
 		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
@@ -241,12 +254,14 @@ export class EffectCreator
 		let affectedEntities = char.items;
 		let dataValueFn = function(toggle, ent, currentVal) 
 		{
+			let val = damageAmount;
 			if (damageAmount instanceof Function)
 			{
-				damageAmount = damageAmount(toggle, ent, currentVal);
+				val = damageAmount(toggle, ent, currentVal);
 			}
 			let mult = toggle ? 1 : -1;
-			return (+currentVal + mult * damageAmount).toString();
+			let result = Math.max(+currentVal + mult * val, 0);
+			return result.toString();
 		};
 		let dataEffect = new CharacterDataEffect(char, operation.toggleName, affectedEntities, path, dataValueFn);
 		dataEffect.displayInfoFn = function(toggle)
