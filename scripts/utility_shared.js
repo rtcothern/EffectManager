@@ -28,8 +28,22 @@ let toggleStatusEffectOnChar = function(char, effectImagePath)
 export class ToggleOperation
 {
 	static privateReportingFlag = "privateMacroReporting";
+	static operationInProgress = false;
 	constructor(char, toggleName, flavorFn, statusImagePath)
 	{
+		if (ToggleOperation.operationInProgress != false)
+		{
+			let errMsg = "[Effect Manager] Unable to apply toggle while another is in progress";
+			let chatData = {
+				user: game.user._id,
+				speaker: ChatMessage.getSpeaker(),
+				whisper: game.users.entities.filter(u => u._id == game.user._id).map(u => u._id),
+				content: `<i>${errMsg}</i>`
+			};
+			ChatMessage.create(chatData, {});
+			throw errMsg;
+		}
+		ToggleOperation.operationInProgress = true;
 		this.char = char;
 		this.toggleName = toggleName;
 		this.flavorFn = flavorFn;
@@ -110,11 +124,11 @@ export class ToggleOperation
 		}
 		ChatMessage.create(chatData, {});
 
-		toggleFlag(this.char, this.toggleName);
 		if(this.statusImagePath != undefined)
 		{
 			toggleStatusEffectOnChar(this.char, this.statusImagePath);
 		}
+		toggleFlag(this.char, this.toggleName).then(values => ToggleOperation.operationInProgress = false);
 	}
 	static createFlavorFn(onBeginning, offBeginning, middle, onEnding, offEnding)
 	{
