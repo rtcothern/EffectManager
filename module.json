@@ -2,7 +2,7 @@
   "name": "EffectManager",
   "title": "Effect Manager",
   "description": "A module for applying useful persistent effects to characters",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "compatibleCoreVersion": "0.5.7",
   "minimumCoreVersion": "0.5.3",
   "author": "Raymond Cothern",
