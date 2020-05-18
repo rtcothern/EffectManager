@@ -71,7 +71,7 @@ window.EffectManager.EffectCreator.BonusDamage(operation, damageAmount);
 ```
 And some examples of using them
 ```
-let acContent = window.EffectCreator.AC(operation, 1);
+let acContent = window.EffectManager.EffectCreator.AC(operation, 1);
 let damageStepUpContent = window.EffectManager.EffectCreator.BaseDamageStep(operation, true );
 let damageDieContent = window.EffectManager.EffectCreator.BonusDamageDice(operation, 1, "d8", "Fire");
 let damageContent = window.EffectManager.EffectCreator.BonusDamage(operation, 3);
